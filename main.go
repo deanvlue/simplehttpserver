@@ -17,10 +17,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"github.com/rs/cors"
 )
 
 // AppVersion This is the last modification app version
-const AppVersion = "2019-09-05:12:42"
+const AppVersion = "2020-05-21:12:58"
 
 // SetupCloseHandler Handles the exit of the App
 func SetupCloseHandler() {
@@ -47,8 +48,10 @@ func main() {
 
 	SetupCloseHandler()
 
+	mux := http.NewServeMux()
+
 	port := flag.String("p", "8100", "puerto de servicio")
-	directory := flag.String("d", ".", "eldirectorio a servir")
+	directory := flag.String("d", ".", "el directorio a servir")
 	version := flag.Bool("v", false, "version de app")
 	flag.Parse()
 
@@ -57,8 +60,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	http.Handle("/", http.FileServer(http.Dir(*directory)))
+
+	//http.Handle("/", http.FileServer(http.Dir(*directory)))
+	mux.Handle("/", http.FileServer(http.Dir(*directory)))
+//	http.HandleFunc("/", serveFiles)
+	handler := cors.Default().Handler(mux)
 
 	log.Printf("Sirviendo %s en puerto %s\n", *directory, *port)
-	log.Fatal(http.ListenAndServe(":"+*port, nil))
+	log.Fatal(http.ListenAndServe(":"+*port, handler))
 }
+
